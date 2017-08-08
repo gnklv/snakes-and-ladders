@@ -1,0 +1,86 @@
+.board {
+	position: relative;
+	display: block;
+	margin: 0 5px;
+	padding: 5px;
+	background-color: #baa;
+	border-radius: 7px;
+
+	&__centroid {
+		display: flex;
+		padding: 10px;
+		justify-content: center;
+		align-items: stretch;
+	}
+
+	&__row {
+		display: flex;
+
+		/* &:nth-child(even) {
+		
+			.board__cell {
+		
+				&:nth-child(odd) {
+					background-color: #C5DDB4;
+				}
+		
+				&:nth-child(even) {
+					background-color: #ACD0D1;
+				}
+			}
+		} */
+	}
+
+	&__cell {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		margin: 5px;
+		background-color: #eee;
+		border-radius: 7px;
+
+		/* &:nth-child(even) {
+			background-color: #C5DDB4;
+		}
+		 */
+		&.board__cell--good {
+			background-color: #ec2 !important;
+
+			& .board__numb {
+				color: #ffe;
+			}
+		}
+
+		&.board__cell--good-end {
+			background-color: lighten(#ec2, 25%) !important;
+		}
+
+		&.board__cell--bad {
+			background-color: #f53 !important;
+
+			& .board__numb {
+				color: #ffe;
+			}
+		}
+
+		&.board__cell--bad-end {
+			background-color: lighten(#f53, 30%) !important;
+		}
+	}
+
+	&__numb {
+		.fz(18, 18);
+		color: #766;
+		font-weight: bold;
+	}
+
+	&__arrow {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+	}
+}

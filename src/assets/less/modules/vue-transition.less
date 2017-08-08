@@ -1,0 +1,37 @@
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s ease;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active для <2.1.8 */ {
+  opacity: 0
+}
+
+.drop-enter-active, .drop-leave-active {
+  transition: all .3s ease;
+}
+.drop-enter, .drop-leave-active {
+  opacity: 0;
+  will-change: opacity;
+  transform: translateY(-30px);
+}
+
+.drop-left-enter-active, .drop-left-leave-active {
+  transition: all .3s ease;
+}
+.drop-left-enter, .drop-left-leave-active {
+  opacity: 0;
+  will-change: opacity;
+  transform: translateX(30px);
+}
+
+.modal-enter {
+  opacity: 0;
+  transform: translateX(50px);
+}
+
+.modal-enter-active {
+  transition: opacity .5s ease, transform .5s ease;
+}
+
+.modal-leave {
+  display: none;
+}
