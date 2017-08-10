@@ -29,7 +29,11 @@
 
       </div>
 
-      <dice :dice="steps" @dice-result="initDice"></dice>
+      <dice 
+        :dice="steps" 
+        :diceCount="diceCount" 
+        @dice-result="initDice"
+      ></dice>
 
     </div>
 
@@ -42,9 +46,19 @@ import Dice from '@/components/Dice'
 
 export default {
   name: 'board',
+  props: {
+    boardSize: {
+      type: Number
+    },
+    playerCount: {
+      type: Number
+    },
+    diceCount: {
+      type: Number
+    }
+  },
   data () {
     return {
-      boardSize: 10,
       gameFile: [],
       ceillPairs: [],
       stateGood: 'good',
@@ -59,25 +73,15 @@ export default {
       },
       steps: null,
       flag: false,
-      user: [
-        {
-          id: 0,
-          pos: [
-            {
-              x: 0,
-              y: 30
-            }
-          ]
-        }
-      ]
+      user: []
     }
   },
   methods: {
     init () {
       this.buildBoard();
 
-      for (let i = 0; i < this.boardSize; i++) {
-        this.setState(this.stateGood, 1, this.emptyCells.length - 1, 'start', i);
+      for (let i = 0; i < this.boardSize*1.5; i++) {
+        this.setState(this.stateGood, 1, this.emptyCells.length - 2, 'start', i);
         this.setState(this.stateGoodEnd, this.rand + 1, this.emptyCells.length - 2, 'fin', i);
 
         this.setState(this.stateBad, 1, this.emptyCells.length - 2, 'start', i);
@@ -91,7 +95,9 @@ export default {
           state: 'default',
           stateId: null,
           player: false,
-          empty: true
+          empty: true,
+          row: Math.floor(i / this.boardSize),
+          order: i - (this.boardSize * Math.floor(i / this.boardSize))
         });
       }
     },
@@ -113,10 +119,16 @@ export default {
         this.setState(state, min, max, pos, i);
       }
     },
-    getCellPosition (id) {
-      let row = Math.floor(id / this.boardSize),
-          order = _.findIndex(this.rowArray[row], { id: id }),
-          x, y;
+    getCellPosition (id, r, o) {
+      let row, order, x, y;
+
+      if (id) {
+        row = this.gameFile[id].row;
+        order = this.gameFile[id].order;
+      } else {
+        row = r;
+        order = o
+      }
 
       x = order * 50 + 30;
       y = row * 50 + 30;
@@ -208,12 +220,12 @@ export default {
       canvas.height = height;
 
       let curPoint = {
-          x : this.user[0].pos[0].x,
-          y : this.user[0].pos[0].y,
+          x : this.user[0].pos.cur.x,
+          y : this.user[0].pos.cur.y,
           index : 0   
       }
 
-      let points = [{x:this.user[0].pos[1].x, y:this.user[0].pos[1].y}];
+      let points = this.user[0].pos.points;
           
       function toPoints(points){
           let targetPoint = points[curPoint.index];
@@ -251,21 +263,66 @@ export default {
       this.moveLinear();
     },
     moveLinear() {
-      let id = this.steps + this.user[0].id - 1,
+      let idStart = this.user[0].id || 0,
+          idFin = this.steps + idStart,
+          rowStart, orderStart,
+          rowFin, orderFin,
           x1, x2, y1, y2;
 
-      this.user[0].id = id;
+      if (idFin >= this.gameFile.length) {
+        idFin = 99;
+      }
 
-      x1 = this.user[0].pos[this.user[0].pos.length - 1].x;
-      x2 = this.getCellPosition(id).x;
-      y1 = this.user[0].pos[this.user[0].pos.length - 1].y;
-      y2 = this.getCellPosition(id).y;
+      rowStart = this.gameFile[idStart].row;
+      orderStart = this.gameFile[idStart].order;
+      rowFin = this.gameFile[idFin].row;
+      orderFin = this.gameFile[idFin].order;
 
-      this.user[0].pos = [];
-      this.user[0].pos.push(
-        { x: x1, y: y1 }, 
-        { x: x2, y: y2 }
-      );
+      this.user[0].id = idFin;
+
+      x1 = this.user[0].pos.points[this.user[0].pos.points.length - 1].x || 0;
+      y1 = this.user[0].pos.points[this.user[0].pos.points.length - 1].y || 30;
+      x2 = this.getCellPosition(idFin).x;
+      y2 = this.getCellPosition(idFin).y;
+
+      this.user[0].pos.cur.x = x1;
+      this.user[0].pos.cur.y = y1;
+
+      this.user[0].pos.points = [];
+
+      if (rowStart != rowFin) {
+        if (orderStart != this.rowArray[rowStart].length - 1) {
+          this.user[0].pos.points.push(this.getCellPosition(null, rowStart, this.rowArray[rowStart].length - 1));
+          this.user[0].pos.points.push(this.getCellPosition(null, rowFin, 0));
+          if (this.gameFile[idFin].state === this.stateGood ||
+              this.gameFile[idFin].state === this.stateBad) {
+            this.moveNotLinear();
+          } else {
+            this.user[0].pos.points.push(
+              { x: x2, y: y2 }
+            );
+          }
+        } else {
+          this.user[0].pos.points.push(this.getCellPosition(null, rowFin, 0));
+          if (this.gameFile[idFin].state === this.stateGood ||
+            this.gameFile[idFin].state === this.stateBad) {
+            this.moveNotLinear();
+          } else {
+            this.user[0].pos.points.push(
+              { x: x2, y: y2 }
+            );
+          }
+        }
+      } else {
+        if (this.gameFile[idFin].state === this.stateGood ||
+            this.gameFile[idFin].state === this.stateBad) {
+          this.moveNotLinear();
+        } else {
+          this.user[0].pos.points.push(
+            { x: x2, y: y2 }
+          );
+        }
+      }
 
       this.canvasPlayer();
     },
@@ -277,18 +334,15 @@ export default {
 
       this.user[0].id = idFin;
 
-      x1 = this.user[0].pos[this.user[0].pos.length - 1].x;
+      x1 = this.getCellPosition(idStart).x;
       x2 = this.getCellPosition(idFin).x;
-      y1 = this.user[0].pos[this.user[0].pos.length - 1].y;
+      y1 = this.getCellPosition(idStart).y;
       y2 = this.getCellPosition(idFin).y;
 
-      this.user[0].pos = [];
-      this.user[0].pos.push(
+      this.user[0].pos.points.push(
         { x: x1, y: y1 }, 
         { x: x2, y: y2 }
       );
-
-      this.canvasPlayer();
     },
     doSteps() {
       let arr = this.gameFile,
@@ -350,6 +404,25 @@ export default {
           this.$emit('finGame');
         }
       }
+    },
+    setPLayer() {
+      for (let i = 0; i < this.playerCount; i++) {
+        this.user.push({
+          id: null,
+          pos: {
+            cur: {
+              x: 0,
+              y: 30
+            },
+            points: [
+              {
+                x: null,
+                y: null
+              }
+            ]
+          }
+        });
+      }
     }
   },
   created () {
@@ -357,6 +430,7 @@ export default {
   },
   mounted () {
     this.createWays();
+    this.setPLayer();
   },
   computed: {
     rowArray: function() {
