@@ -344,67 +344,6 @@ export default {
         { x: x2, y: y2 }
       );
     },
-    doSteps() {
-      let arr = this.gameFile,
-          obj = _.find(arr, x => { return x.player }),
-          objEnd, state, stateId;
-
-      var setPlayerPos = (index) => {
-        this.playerPos.push({
-          x: this.getCellPosition(arr[index].id).x,
-          y: this.getCellPosition(arr[index].id).y
-        })
-      };
-
-      var setEnd = (start) => {
-        objEnd = _.find(arr, { 'stateId': stateId, 'state': `${state}-end` });
-        arr[start].player = false;
-        arr[objEnd.id].player = true;
-      }
-
-      var checkCondition = (index) => {
-        if (arr[index].state == this.stateGood || arr[index].state == this.stateBad) {
-          state = arr[index].state;
-          stateId = arr[index].stateId;
-
-          setEnd(index);
-
-          setPlayerPos(objEnd.id);
-          this.flag = true;
-          this.canvasPlayer();
-          this.flag = false;
-        }
-      }
-
-      if (!obj) {
-        arr[this.steps - 1].player = true;
-
-        setPlayerPos(this.steps - 1);
-        this.canvasPlayer();
-
-        checkCondition(this.steps - 1);
-
-      } else {
-        if (obj.id + this.steps < this.gameFile.length - 1) {
-          arr[obj.id].player = false;
-          arr[obj.id + this.steps].player = true;
-
-          setPlayerPos(obj.id + this.steps);
-          this.canvasPlayer();
-
-          checkCondition(obj.id + this.steps);
-
-        } else {
-          arr[obj.id].player = false;
-          arr[this.gameFile.length - 1].player = true;
-
-          setPlayerPos(this.gameFile.length - 1);
-          this.canvasPlayer();
-
-          this.$emit('finGame');
-        }
-      }
-    },
     setPLayer() {
       for (let i = 0; i < this.playerCount; i++) {
         this.user.push({
